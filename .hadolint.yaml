@@ -1,5 +1,2 @@
 ---
-ignored:
-  - DL3013
-  - DL3018
-  - SC2086
+ignored: []

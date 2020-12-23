@@ -1,0 +1,41 @@
+---
+name: Build docker image
+
+"on":
+  schedule:
+    - cron: "0 3 * * *"
+  push:
+    paths:
+      - .github/workflows/build-docker-image.yml
+      - Dockerfile
+      - files/**
+      - scripts/*
+  pull_request:
+    paths:
+      - .github/workflows/build-docker-image.yml
+      - Dockerfile
+      - files/**
+      - scripts/*
+
+jobs:
+  build-docker-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: docker/setup-buildx-action@v1
+      - uses: docker/login-action@v1
+        with:
+          registry: ${{ secrets.DOCKER_REGISTRY }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+        if: github.ref == 'refs/heads/master'
+      - run: scripts/build.sh
+        env:
+          DOCKER_REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
+          REPOSITORY: osism/patchman
+      - run: |
+          scripts/push.sh
+        env:
+          DOCKER_REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
+          REPOSITORY: osism/patchman
+        if: github.ref == 'refs/heads/master'

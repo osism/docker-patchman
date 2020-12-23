@@ -8,10 +8,12 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.3/wait /wait
+
 COPY files/local_settings.py /etc/patchman/local_settings.py
 COPY files/requirements.txt /requirements.txt
 COPY files/run.sh /run.sh
 
+# hadolint ignore=DL3018
 RUN apk add --no-cache \
       curl \
       libmagic \
@@ -32,6 +34,7 @@ RUN apk add --no-cache \
 RUN if [ $VERSION = "latest" ]; then git clone https://github.com/furlongm/patchman.git /repository; fi \
     && if [ $VERSION != "latest" ]; then git clone -b v$VERSION https://github.com/furlongm/patchman.git /repository; fi
 
+# hadolint ignore=DL3013
 RUN pip3 install --no-cache-dir --upgrade pip \
     && pip3 install --no-cache-dir -r /repository/requirements.txt \
     && pip3 install --no-cache-dir -r /requirements.txt \
@@ -41,8 +44,8 @@ RUN adduser -D patchman \
     && chown patchman: /etc/patchman/local_settings.py \
     && mkdir -p /var/lib/patchman/db \
     && lib=$(python3 -c "import site; print(site.getsitepackages()[0])") \
-    && mkdir -p $lib/run/static \
-    && chown -R patchman: /var/lib/patchman $lib/run/static
+    && mkdir -p "$lib/run/static" \
+    && chown -R patchman: /var/lib/patchman "$lib/run/static"
 
 RUN apk del .build-deps \
     && rm -rf /repository /requirements.txt
